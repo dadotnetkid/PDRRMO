@@ -1,0 +1,35 @@
+﻿@using PDRRMO.Data
+@using Blazored.Modal
+@inject ApplicationDbContext db
+<div class="row">
+    <div class="col">
+        <label for="@Contacts.Name">Name</label>
+        <input class="form-control" placeholder="Name" @bind="@Contacts.Name" />
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <label for="@Contacts.PhoneNumber">Phone Number</label>
+        <input class="form-control" placeholder="Phone Number" @bind="@Contacts.PhoneNumber" />
+    </div>
+</div>
+<div class="row margin-top-10">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+    </div>
+</div>
+@code {
+    Data.Contacts Contacts { get; set; }
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; }
+    protected override void OnInitialized()
+    {
+        this.Contacts = new Data.Contacts();
+        base.OnInitialized();
+    }
+    void Save()
+    {
+        db.Contacts.Add(Contacts);
+        db.SaveChanges();
+        BlazoredModal.Close(Blazored.Modal.Services.ModalResult.Ok("Success"));
+    }
+}

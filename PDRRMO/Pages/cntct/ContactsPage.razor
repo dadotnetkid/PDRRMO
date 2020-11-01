@@ -1,0 +1,87 @@
+﻿@page "/contacts"
+@using Microsoft.EntityFrameworkCore
+@using PDRRMO.Data
+@using Blazored.Modal.Services
+@inject IModalService Modal
+@inject PDRRMO.Data.ApplicationDbContext db
+<div class="card">
+    <div class="card-header">
+        <h4>Contacts</h4>
+    </div>
+    <div class="card-body">
+        @if (contacts == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" @onclick="showModal">Add Contacts</button>
+                </div>
+            </div>
+            <div class="row margin-top-10">
+                <div class="col">
+                    <table class="table table-bordered  ">
+                        <thead>
+                        <tr>
+                            <th width="10%"></th>
+                            <th width="30%">Name</th>
+                            <th width="50%">Phone Number</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @if (!contacts.Any())
+                        {
+                            <tr>
+                                <td colspan="2">No Data</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var i in contacts)
+                            {
+
+                                <tr>
+                                    <td><button class="btn btn-danger" @onclick="@(() => { Delete(i.Id);})"><span class=""></span> Delete</button></td>
+                                    <td>@i.Name</td>
+                                    <td>@i.PhoneNumber</td>
+                                </tr>
+                            }
+                        }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+@code {
+    AddContacts AddContacts;
+    protected override async Task OnInitializedAsync()
+    {
+        contacts = await db.Contacts.ToListAsync();
+
+    }
+
+    void Delete(int id)
+    {
+        db.Contacts.Remove(db.Contacts.Find(id));
+        db.SaveChanges();
+        contacts = db.Contacts.ToList();
+        StateHasChanged();
+    }
+
+    async void showModal()
+    {
+        var res = Modal.Show<AddContacts>("Add Contact");
+        var result = await res.Result;
+        if (result.Data == "Success")
+        {
+            contacts = await db.Contacts.ToListAsync();
+        }
+        StateHasChanged();
+    }
+    private List<Contacts> contacts;
+}

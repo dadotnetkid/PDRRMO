@@ -1,0 +1,70 @@
+﻿@page "/"
+@using DevExpress.Blazor
+@using Microsoft.EntityFrameworkCore
+@inject PDRRMO.Services.SmsService smsService
+@inject PDRRMO.Data.ApplicationDbContext db
+
+
+<div class="card">
+    <div class="card-header">
+        <h5>Messages</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col">
+                <button class="btn btn-primary" @onclick="showModal">New Message</button>
+            </div>
+        </div>
+        <div class="row margin-top-10">
+            <div class="col">
+                <DxDataGrid Data="messages"
+                            RowRemoving="@((dataItem) => onRowRemoving(dataItem))"
+                            InitNewRow="@OnInitNewRow">
+                    <DxDataGridCommandColumn Width="100px"
+                                             EditButtonVisible="false"
+                                             NewButtonVisible="false"/>
+                    <DxDataGridColumn Field=@nameof(Data.Messages.PhoneNumber) Caption="Phone Number"></DxDataGridColumn>
+                    <DxDataGridColumn Field=@nameof(Data.Messages.Message) Caption="Message"></DxDataGridColumn>
+
+                </DxDataGrid>
+            </div>
+        </div>
+
+    </div>
+</div>
+<AddEditMessagePage @ref="addEditMessage"></AddEditMessagePage>
+@code{
+    AddEditMessagePage addEditMessage;
+    protected override async Task OnInitializedAsync()
+    {
+        this.messages = await db.Messages.ToListAsync();
+    }
+
+    private List<Data.Messages> messages;
+
+    private async Task onRowRemoving(Data.Messages dataItem)
+    {
+        db.Remove(dataItem);
+        db.SaveChanges();
+        this.messages = await db.Messages.ToListAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnInitNewRow(Dictionary<string, object> arg)
+    {
+        this.messages = await db.Messages.ToListAsync();
+    }
+
+    private void showModal()
+    {
+        addEditMessage.show(this);
+
+    }
+
+    public void Refresh()
+    {
+        this.messages =  db.Messages.ToList();
+        StateHasChanged();
+    }
+
+}

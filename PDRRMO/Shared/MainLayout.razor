@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+@inject HttpClient http
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4 auth">
+        @if (apiStatus != null)
+        {
+            <a href="#">Balance @apiStatus?.Result?.MessagesLeft</a>
+        }
+        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+@code{
+
+    class APIStatus
+    {
+        public Result Result { get; set; }
+    }
+
+    class Result
+    {
+        public string MessagesLeft { get; set; }
+    }
+    APIStatus apiStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var json = await http.GetAsync("https://www.itexmo.com/php_api/apicode_info.php?apicode=PR-PLGUN355481_KR8GY");
+        var status = (await json.Content.ReadAsStringAsync()).Replace("\t", "").Replace("\n", "").Replace("\r", "").Replace(@"Result ", "Result");
+        apiStatus = Newtonsoft.Json.JsonConvert.DeserializeObject<APIStatus>(status, new Newtonsoft.Json.JsonSerializerSettings()
+        {
+
+        });
+    }
+
+}

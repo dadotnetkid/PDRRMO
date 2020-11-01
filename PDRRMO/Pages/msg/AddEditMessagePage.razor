@@ -1,0 +1,74 @@
+﻿@using Microsoft.EntityFrameworkCore
+@inject PDRRMO.Data.ApplicationDbContext db
+@inject PDRRMO.Services.SmsService smsService
+<DevExpress.Blazor.DxPopup HeaderText="@headerText"
+                           @bind-Visible="@PopupVisible">
+    <Content>
+        <div class="row">
+            <div class="col">
+                <label>Phone Number</label>
+                <DevExpress.Blazor.DxTagBox Data="@contacts"
+                                            TextFieldName="@nameof(PDRRMO.Data.Contacts.Name)"
+                                            ValueFieldName="PhoneNumber"
+                                            @bind-Values="@phoneNumber"
+                                            @bind-Tags="@names">
+
+                </DevExpress.Blazor.DxTagBox>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Message</label>
+                <DevExpress.Blazor.DxMemo @bind-Text="message.Message"></DevExpress.Blazor.DxMemo>
+            </div>
+        </div>
+    </Content>
+    <FooterTemplate>
+        <button class="btn btn-primary" @onclick="Send">Send</button>
+    </FooterTemplate>
+</DevExpress.Blazor.DxPopup>
+
+@code {
+    private bool PopupVisible { get; set; }
+    string headerText;
+    protected override async Task OnInitializedAsync()
+    {
+
+
+    }
+
+    public void show(MessagesPage messages)
+    {
+        PopupVisible = true;
+        this.contacts = db.Contacts.ToList();
+        this.messagePage = messages;
+        this.message = new PDRRMO.Data.Messages();
+        StateHasChanged();
+    }
+
+    private PDRRMO.Data.Messages message;
+    private List<Data.Contacts> contacts;
+    IEnumerable<string> phoneNumber;
+    IEnumerable<string> names;
+    private MessagesPage messagePage;
+
+    private void Send()
+    {
+        db.Messages.Add(new Data.Messages()
+        {
+            Message = message.Message,
+            PhoneNumber = string.Join(",", names)
+        });
+        db.SaveChanges();
+        foreach (var i in phoneNumber)
+        {
+            smsService.Send(i, message.Message);
+        }
+        //
+        messagePage.Refresh();
+        this.PopupVisible = false;
+        StateHasChanged();
+    }
+
+
+}
